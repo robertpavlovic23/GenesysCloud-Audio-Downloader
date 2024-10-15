@@ -55,7 +55,7 @@ func CreateAudioFile(url, name, language string) string {
 }
 
 func FillCSVFile(name, description, audio, tts string) error {
-	// inputFile, err := os.Open("prompts.csv")
+	// Open or create the CSV file
 	file, err := os.OpenFile("prompts.csv", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		log.Fatal("Failed to open CSV file: ", err)
@@ -67,6 +67,19 @@ func FillCSVFile(name, description, audio, tts string) error {
 
 	writer.Comma = ';'
 
+	// Write header if file is empty
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return fmt.Errorf("failed to get file info: %v", err)
+	}
+	if fileInfo.Size() == 0 {
+		header := []string{"Name", "Description", "Audio", "TTS"}
+		if err := writer.Write(header); err != nil {
+			return fmt.Errorf("failed to write header: %v", err)
+		}
+	}
+
+	// Write the record
 	record := []string{name, description, audio, tts}
 	if err := writer.Write(record); err != nil {
 		return fmt.Errorf("failed to write record: %v", err)
